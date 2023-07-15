@@ -1,0 +1,60 @@
+version: '3'
+services:
+  postgres-test:
+    container_name: postgres-test
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: testDb
+    ports:
+      - 5432:5432
+  
+  unit-test:
+    container_name: unit-test
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: unittest
+    ports:
+      - 5000:80
+    entrypoint: 
+      - dotnet
+      - test
+
+  functional-test:
+    container_name: functional-test
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: functionaltest
+    ports: 
+      - 5001:80
+    environment:
+      CUSTOMCONNSTR_POSTGRES: "host=postgres-test;port=5432;database=testDb;user id=postgres;password=admin;"
+    depends_on:
+      - postgres-test
+    entrypoint: 
+      - dotnet
+      - test
+
+  app-test:
+    container_name: app-test
+    build: .
+    ports:
+      - 8000:80
+    depends_on:
+      - postgres-test
+    environment:
+      CUSTOMCONNSTR_POSTGRES: "host=postgres-test;port=5432;database=testDb;user id=postgres;password=admin;"
+
+  pgadmin-test:
+    container_name: pgadmin-test
+    image: dpage/pgadmin4
+    environment: 
+      PGADMIN_DEFAULT_EMAIL: admin@admin.org
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports: 
+      - 5050:80
+    depends_on:
+      - postgres-test

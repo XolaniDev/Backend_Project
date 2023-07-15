@@ -1,0 +1,112 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         "connectionString": {
+            "type": "securestring"
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "apiVersion": "2021-07-01",
+            "properties": {
+                "sku": "Standard",
+                "provisioningState": "Succeeded",
+                "containers": [
+                    {
+                        "name": "dcvc-web-api-test",
+                        "properties": {
+                            "image": "dcvccontainerregistry.azurecr.io/dcvc-web-api:latest",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 80
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "DB_CONNECTION_STRING",
+                                    "value": "[parameters('connectionString')]"
+                                }
+                            ],
+                            "instanceView": {
+                                "restartCount": 0,
+                                "currentState": {
+                                    "state": "Running",
+                                    "startTime": "2021-11-26T07:26:00.264Z",
+                                    "detailStatus": ""
+                                },
+                                "events": [
+                                    {
+                                        "count": 1,
+                                        "firstTimestamp": "2021-11-26T07:25:40Z",
+                                        "lastTimestamp": "2021-11-26T07:25:40Z",
+                                        "name": "Pulling",
+                                        "message": "pulling image \"dcvccontainerregistry.azurecr.io/dcvc-web-api@sha256:365dda9445bc1fe0d1a88672c04811bfc490034ab6c331569db65cf86bcbd29a\"",
+                                        "type": "Normal"
+                                    },
+                                    {
+                                        "count": 1,
+                                        "firstTimestamp": "2021-11-26T07:25:52Z",
+                                        "lastTimestamp": "2021-11-26T07:25:52Z",
+                                        "name": "Pulled",
+                                        "message": "Successfully pulled image \"dcvccontainerregistry.azurecr.io/dcvc-web-api@sha256:365dda9445bc1fe0d1a88672c04811bfc490034ab6c331569db65cf86bcbd29a\"",
+                                        "type": "Normal"
+                                    },
+                                    {
+                                        "count": 1,
+                                        "firstTimestamp": "2021-11-26T07:26:00Z",
+                                        "lastTimestamp": "2021-11-26T07:26:00Z",
+                                        "name": "Started",
+                                        "message": "Started container",
+                                        "type": "Normal"
+                                    }
+                                ]
+                            },
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "initContainers": [],
+                "imageRegistryCredentials": [
+                    {
+                        "server": "dcvccontainerregistry.azurecr.io",
+                        "username": "DcvcContainerRegistry",
+                        "password": "z1+4j9xrxKQtiSG5NkcsNqcU1lc3DLgE"
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 80
+                        }
+                    ],
+                    "ip": "40.127.19.179",
+                    "type": "Public",
+                    "dnsNameLabel": "dcvc-web-api-test",
+                    "fqdn": "dcvc-web-api-test.southafricanorth.azurecontainer.io"
+                },
+                "osType": "Linux",
+                "instanceView": {
+                    "events": [],
+                    "state": "Running"
+                }
+            },
+            "id": "/subscriptions/1a2ee11e-db57-486e-8b37-cd9700bfe5ad/resourceGroups/Dcvc-Web-Api-Group/providers/Microsoft.ContainerInstance/containerGroups/dcvc-web-api-test",
+            "name": "dcvc-web-api-test",
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "location": "southafricanorth",
+            "tags": {}
+        }
+    ],
+    "outputs": {}
+}

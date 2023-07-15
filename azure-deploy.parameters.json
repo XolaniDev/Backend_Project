@@ -1,0 +1,14 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "connectionString": {
+            "reference": {
+            "keyVault": {
+                "id": "/subscriptions/1a2ee11e-db57-486e-8b37-cd9700bfe5ad/resourceGroups/Dcvc-Web-Api-Group/providers/Microsoft.KeyVault/vaults/DcvcKeyVault"
+            },
+            "secretName": "ConnectionString"
+        }
+        }
+    }
+}

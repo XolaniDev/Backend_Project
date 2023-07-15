@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# 
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "af.assessment.api", "af.assessment.api\af.assessment.api.csproj", "{6CFF3908-9022-440F-A020-CFB4C0891E9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "af.assessment.api.test", "af.assessment.api.test\af.assessment.api.test.csproj", "{38A35ED9-AE59-472D-B3E4-762A8F2EFF01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "af.assessment.api.IntegrationTests", "af.assessment.api.IntegrationTests\af.assessment.api.IntegrationTests.csproj", "{B8371984-435D-459F-A479-04F445250CBA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6CFF3908-9022-440F-A020-CFB4C0891E9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CFF3908-9022-440F-A020-CFB4C0891E9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CFF3908-9022-440F-A020-CFB4C0891E9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CFF3908-9022-440F-A020-CFB4C0891E9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38A35ED9-AE59-472D-B3E4-762A8F2EFF01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38A35ED9-AE59-472D-B3E4-762A8F2EFF01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38A35ED9-AE59-472D-B3E4-762A8F2EFF01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38A35ED9-AE59-472D-B3E4-762A8F2EFF01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8371984-435D-459F-A479-04F445250CBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8371984-435D-459F-A479-04F445250CBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8371984-435D-459F-A479-04F445250CBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8371984-435D-459F-A479-04F445250CBA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

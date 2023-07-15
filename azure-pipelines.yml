@@ -1,0 +1,195 @@
+# [2019] - [2021] Eblocks Software (Pty) Ltd, All Rights Reserved.
+# NOTICE: All information contained herein is, and remains the property of Eblocks
+# Software (Pty) Ltd.
+# and its suppliers (if any). The intellectual and technical concepts contained herein
+# are proprietary
+# to Eblocks Software (Pty) Ltd. and its suppliers (if any) and may be covered by South 
+# African, U.S.
+# and Foreign patents, patents in process, and are protected by trade secret and / or 
+# copyright law.
+# Dissemination of this information or reproduction of this material is forbidden unless
+# prior written
+# permission is obtained from Eblocks Software (Pty) Ltd.
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  solution: '**/*.sln'
+  projects: '**/*.csproj'      
+  tag: '$(Build.BuildId)'
+  dotNetCoreSdkVersion: '3.1.x'
+  System.debug: true
+  CUSTOMCONNSTR_POSTGRES: 'server=localhost;port=5432;database=testDb;user id=postgres;password=admin'
+
+stages:
+- stage: BuildAndTest
+  jobs:
+    - job: BuildAndTestAPI
+      steps:
+      - task: UseDotNet@2
+        displayName: 'Build Environment'
+        inputs: 
+          version: '3.1.x'
+          performMultiLevelLookup: true
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore Packages'
+        inputs:
+          command: restore
+          projects: '**/*.csproj'
+      - task: DotNetCoreCLI@2
+        displayName: 'Build Project'
+        inputs: 
+          command: build
+          projects: '**/*.csproj'
+          arguments: '--configuration $(buildConfiguration) --no-restore'
+      # Run unit tests and collect code coverage.
+      - task: DotNetCoreCLI@2
+        displayName: 'Run Unit Tests'
+        inputs:
+          command: test
+          projects: '**/*.test.csproj'
+          arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+          testRunTitle: 'Unit Tests'
+      # Publish code coverage results to azure.
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage report to azure'
+        inputs:
+          codeCoverageTool: 'Cobertura'
+          summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+      
+      # Ensure quality build by checking coverage percentage. Build will fail if coverage is below 85%.
+      - task: BuildQualityChecks@8
+        displayName: 'Ensure quality build'
+        inputs:
+          checkCoverage: true
+          coverageFailOption: 'fixed'
+          coverageType: 'lines'
+          coverageThreshold: '85'
+      
+- stage: QA
+  jobs:
+    - job: 'RunIntegrationTests'
+      steps:
+        - task: DockerCompose@0
+          inputs:
+            containerregistrytype: 'Container Registry'
+            dockerComposeFile: '**/docker-compose.test.yml'
+            dockerComposeCommand: 'up -d postgres-test'
+        - task: UseDotNet@2
+          displayName: 'Build Environment'
+          inputs: 
+            version: '3.1.x'
+            performMultiLevelLookup: true
+        - task: DotNetCoreCLI@2
+          displayName: 'Restore Packages'
+          inputs:
+            command: restore
+            projects: '**/*.csproj'
+        - task: DotNetCoreCLI@2
+          displayName: 'Build Project'
+          inputs: 
+            command: build
+            projects: '**/*.csproj'
+            arguments: '--configuration $(buildConfiguration) --no-restore'
+        - task: DotNetCoreCLI@2 
+          displayName: 'Run Integration Tests'
+          inputs:
+            command: 'test'
+            projects: '**/*.IntegrationTests.csproj'
+            arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+            testRunTitle: 'Integration Tests'
+        # Publish code coverage results to azure.
+        - task: PublishCodeCoverageResults@1
+          displayName: 'Publish code coverage report to azure'
+          inputs:
+            codeCoverageTool: 'Cobertura'
+            summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+        
+        # Ensure quality build by checking coverage percentage. Build will fail if coverage is below 85%.
+        - task: BuildQualityChecks@8
+          displayName: 'Ensure quality build'
+          inputs:
+            checkCoverage: true
+            coverageFailOption: 'fixed'
+            coverageType: 'lines'
+            coverageThreshold: '50'
+- stage: 'Coverage'
+  jobs:
+    - job: 'GenerateCodeCoverageForAllTests'
+      steps:
+        - task: DockerCompose@0
+          inputs:
+            containerregistrytype: 'Container Registry'
+            dockerComposeFile: '**/docker-compose.test.yml'
+            dockerComposeCommand: 'up -d postgres-test'
+        - task: UseDotNet@2
+          displayName: 'Build Environment'
+          inputs: 
+            version: '3.1.x'
+            performMultiLevelLookup: true
+        - task: DotNetCoreCLI@2
+          displayName: 'Restore Packages'
+          inputs:
+            command: restore
+            projects: '**/*.csproj'
+        - task: DotNetCoreCLI@2
+          displayName: 'Build Project'
+          inputs: 
+            command: build
+            projects: '**/*.csproj'
+            arguments: '--configuration $(buildConfiguration) --no-restore'
+        - task: DotNetCoreCLI@2
+          inputs:
+            command: 'test'
+            projects: '**/*.test.csproj'
+            arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage""'
+            testRunTitle: 'Unit Tests'
+        - task: DotNetCoreCLI@2
+          inputs:
+            command: 'test'
+            projects: '**/*.*Tests.csproj'
+            arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage""'
+            testRunTitle: 'Integration Tests'
+        - task: reportgenerator@5
+          inputs:
+            reports: '$(Agent.TempDirectory)/**/*.cobertura.xml'
+            targetdir: '$(Agent.TempDirectory)/coveragereport'
+        - task: PublishCodeCoverageResults@1
+          inputs:
+            codeCoverageTool: 'Cobertura'
+            summaryFileLocation: '$(Agent.TempDirectory)/coveragereport/Cobertura.xml'
+- stage: Deploy
+  dependsOn: QA
+  jobs:
+    - job:
+      steps:
+        # Build and push docker image to azure container registry.
+        - task: Docker@2
+          inputs:
+            containerRegistry: 'DcvcContainerRegistry'
+            repository: 'dcvc-web-api'
+            command: 'buildAndPush'
+            Dockerfile: '**/Dockerfile'
+            tags: |
+              latest
+              
+        # Copy ARM template to staging directory.
+        - task: CopyFiles@2
+          displayName: 'Copy ARM template from repository'
+          inputs:
+            Contents: '*.json'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+        # Publish ARM template to azure artifacts to trigger release pipeline.    
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish ARM template to azure artifacts'
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+            ArtifactName: 'drop'
+            publishLocation: 'Container'
